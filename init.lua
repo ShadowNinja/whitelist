@@ -23,8 +23,8 @@ local function save_whitelist()
 	if err then
 		return
 	end
-	for item in pairs(whitelist) do
-		file:write(item)
+	for _, item in pairs(whitelist) do
+		file:write(item.."\n")
 	end
 	file:close()
 end
