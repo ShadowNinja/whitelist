@@ -3,27 +3,27 @@
 -- License: WTFPL
 --]]
 
-local worldpath = minetest.get_worldpath()
-local whitelist = {}
+local world_path = minetest.get_worldpath()
 local admin = minetest.setting_get("name")
+local whitelist = {}
 
 local function load_whitelist()
-	local file, err = io.open(worldpath.."/whitelist.txt", "r")
+	local file, err = io.open(world_path.."/whitelist.txt", "r")
 	if err then
 		return
 	end
 	for line in file:lines() do
-		table.insert(whitelist, line)
+		whitelist[line] = true
 	end
 	file:close()
 end
 
 local function save_whitelist()
-	local file, err = io.open(worldpath.."/whitelist.txt", "w")
+	local file, err = io.open(world_path.."/whitelist.txt", "w")
 	if err then
 		return
 	end
-	for _, item in pairs(whitelist) do
+	for item in pairs(whitelist) do
 		file:write(item.."\n")
 	end
 	file:close()
@@ -32,13 +32,8 @@ end
 load_whitelist()
 
 minetest.register_on_prejoinplayer(function(name, ip)
-	if name == admin or name == "singleplayer" then
+	if name == "singleplayer" or name == admin or whitelist[name] then
 		return
-	end
-	for _, whitename in pairs(whitelist) do
-		if name == whitename then
-			return
-		end
 	end
 	return "This server is whitelisted and you are not on the whitelist."
 end)
@@ -50,39 +45,22 @@ minetest.register_chatcommand("whitelist", {
 	func = function(name, param)
 		local action, whitename = param:match("^([^ ]+) ([^ ]+)$")
 		if action == "add" then
-			local alreadyin = false
-			for i, listname in pairs(whitelist) do
-				if listname == whitename then
-					alreadyin = true
-				end
+			if whitelist[whitename] then
+				return false, whitename..
+					" is already on the whitelist."
 			end
-			if not alreadyin then
-				table.insert(whitelist, whitename)
-				save_whitelist()
-				minetest.chat_send_player(name, "Added "
-					..whitename.." to the whitelist.")
-			else
-				minetest.chat_send_player(name, whitename
-					.." is already on the whitelist.")
-			end
+			whitelist[whitename] = true
+			save_whitelist()
+			return true, "Added "..whitename.." to the whitelist."
 		elseif action == "remove" then
-			local removed = false
-			for i, listname in pairs(whitelist) do
-				if listname == whitename then
-					table.remove(whitelist, i)
-					removed = true
-				end
+			if not whitelist[whitename] then
+				return false, whitename.." is not on the whitelist."
 			end
-			if removed then
-				save_whitelist()
-				minetest.chat_send_player(name, "Removed "
-					..whitename.." from the whitelist.")
-			else
-				minetest.chat_send_player(name, whitename
-					.." is not on the whitelist.")
-			end
+			whitelist[whitename] = nil
+			save_whitelist()
+			return true, "Removed "..whitename.." from the whitelist."
 		else
-			minetest.chat_send_player(name, "Invalid action.")
+			return false, "Invalid action."
 		end
 	end,
 })
