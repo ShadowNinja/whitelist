@@ -7,6 +7,9 @@ local world_path = minetest.get_worldpath()
 local admin = minetest.setting_get("name")
 local whitelist = {}
 
+-- Enabled by default
+local enabled = minetest.setting_getbool("whitelist.enable") ~= false
+
 local function load_whitelist()
 	local file, err = io.open(world_path.."/whitelist.txt", "r")
 	if err then
@@ -31,12 +34,14 @@ end
 
 load_whitelist()
 
-minetest.register_on_prejoinplayer(function(name, ip)
-	if name == "singleplayer" or name == admin or whitelist[name] then
-		return
-	end
-	return "This server is whitelisted and you are not on the whitelist."
-end)
+if enabled then
+	minetest.register_on_prejoinplayer(function(name, ip)
+		if name == "singleplayer" or name == admin or whitelist[name] then
+			return
+		end
+		return "This server is whitelisted and you are not on the whitelist."
+	end)
+end
 
 minetest.register_chatcommand("whitelist", {
 	params = "{add|remove} <nick>",
