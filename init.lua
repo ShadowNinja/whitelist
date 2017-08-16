@@ -4,7 +4,7 @@
 --]]
 
 local world_path = minetest.get_worldpath()
-local admin = minetest.setting_get("name")
+local admin = minetest.settings:get("name")
 local whitelist = {}
 
 local function load_whitelist()
