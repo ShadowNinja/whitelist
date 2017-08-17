@@ -29,9 +29,8 @@ local function save_whitelist()
 	file:close()
 end
 
-load_whitelist()
-
 minetest.register_on_prejoinplayer(function(name, ip)
+	load_whitelist()
 	if name == "singleplayer" or name == admin or whitelist[name] then
 		return
 	end
