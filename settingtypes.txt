@@ -1,0 +1,3 @@
+
+# Enables/Disables whitelist feature.
+whitelist.enable (Enable whitelist) bool true
